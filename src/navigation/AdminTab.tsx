@@ -1,26 +1,26 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { ClipboardList, User } from 'lucide-react-native';
+import { Inbox, User } from 'lucide-react-native';
 
-import TugasStack from './TugasStack';
+import AdminStack from './AdminStack';
 import ProfileStack from './ProfileStack';
 
 const Tab = createBottomTabNavigator();
 
-export default function PetugasTab() {
+export default function AdminTab() {
   return (
     <Tab.Navigator
       screenOptions={{
-        tabBarActiveTintColor: '#0284c7', // Sky Blue 
+        tabBarActiveTintColor: '#7c3aed',
         tabBarInactiveTintColor: '#94a3b8',
         headerShown: false,
         tabBarStyle: { paddingBottom: 5, height: 60 }
       }}
     >
       <Tab.Screen 
-        name="Tugas" 
-        component={TugasStack} 
-        options={{ tabBarIcon: ({ color }) => <ClipboardList color={color} size={24} /> }} 
+        name="Laporan" 
+        component={AdminStack} 
+        options={{ tabBarIcon: ({ color }) => <Inbox color={color} size={24} /> }} 
       />
       <Tab.Screen 
         name="Profile" 

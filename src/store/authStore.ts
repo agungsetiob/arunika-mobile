@@ -10,19 +10,21 @@ interface User {
 
 interface AuthState {
   user: User | null;
-  role: 'warga' | 'petugas' | null;
+  role: 'warga' | 'petugas' | 'admin' | null;
   token: string | null;
   isLoading: boolean;
   login: (userData: User, userRole: 'warga' | 'petugas', userToken: string) => Promise<void>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
+  setUser: (user: any) => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   role: null,
   token: null,
-  isLoading: true, // true saat pertama kali app dibuka untuk ngecek token
+  isLoading: true,
+  setUser: (user) => set({ user }),
 
   login: async (userData, userRole, userToken) => {
     await AsyncStorage.setItem('userToken', userToken);

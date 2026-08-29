@@ -10,21 +10,45 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#0f172a"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.agung.arunika",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Aplikasi membutuhkan akses kamera untuk mengambil foto kerusakan lampu jalan.",
+        "NSLocationWhenInUseUsageDescription": "Aplikasi membutuhkan akses lokasi untuk melaporkan posisi kerusakan lampu jalan.",
+        "NSUserNotificationUsageDescription": "Aplikasi membutuhkan izin notifikasi untuk mengirim laporan dan update status kerusakan lampu jalan."
+      }
     },
     "android": {
+      "package": "com.agung.arunika",
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#0f172a"
       },
+      "permissions": [
+        "CAMERA",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ],
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
     "web": {
       "favicon": "./assets/favicon.png"
     }
-  }
+  },
+  "plugins": [
+      "expo-font",
+      "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/logo-kemenhub.png",
+          "color": "#ea580c"
+        }
+      ]
+    ]
 }

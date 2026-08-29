@@ -1,38 +1,46 @@
-import React from 'react';
-import { View, Text, ActivityIndicator } from 'react-native';
-import { Lightbulb } from 'lucide-react-native'; // Menggunakan Lightbulb sebagai ikon lampu
+import React from "react";
+import { View, Text, ActivityIndicator, Image } from "react-native";
+import { Lightbulb } from "lucide-react-native";
 
 export default function SplashScreen() {
   return (
-    <View className="flex-1 items-center justify-center bg-slate-900">
-      
-      {/* Efek Lingkaran Glow di Belakang Ikon */}
-      <View className="absolute h-64 w-64 rounded-full bg-orange-500/20 blur-3xl" />
+    <View className="flex-1 items-center justify-center bg-slate-900 relative">
+      <View
+        className="absolute h-64 w-64 rounded-full bg-orange-500/20 blur-3xl"
+        style={{
+          top: "50%",
+          left: "50%",
+          transform: [{ translateX: -128 }, { translateY: -128 }],
+        }}
+      />
 
-      {/* Konten Utama */}
-      <View className="items-center z-10">
-        <View className="mb-6 flex h-24 w-24 items-center justify-center rounded-3xl bg-gradient-to-br from-amber-400 to-orange-600 shadow-2xl shadow-orange-500/50">
-          <Lightbulb color="white" size={48} strokeWidth={2.5} />
+      <Image
+        source={require("../../assets/beraksi-logo.png")}
+        className="absolute top-16 w-auto h-12"
+        resizeMode="contain"
+      />
+
+      <View className="items-center z-10 gap-y-1">
+        <View
+          className="h-32 w-32 items-center justify-center rounded-full bg-orange-500"
+        >
+          <Lightbulb color="white" size={64} strokeWidth={2.5} />
         </View>
-
-        <Text className="text-4xl font-extrabold text-white mb-1">
-          ARUNIKA
-        </Text>
-        <Text className="text-xs font-bold uppercase text-orange-400 mb-12">
+        <Text className="text-4xl font-extrabold text-white">ARUNIKA</Text>
+        <Text className="text-xs font-bold uppercase text-orange-500">
           Smart PJU System
-        </Text>
-
-        {/* Loading Indicator */}
-        <ActivityIndicator size="large" color="#f97316" />
-        <Text className="text-slate-400 text-sm mt-4 font-medium animate-pulse">
-          Memuat sistem...
         </Text>
       </View>
 
-      {/* Footer / Copyright */}
+      <ActivityIndicator
+        size="large"
+        color="#f97316"
+        className="absolute bottom-20"
+      />
+
       <View className="absolute bottom-10">
-        <Text className="text-slate-500 text-xs font-medium">
-          Dinas Perhubungan & PUPR
+        <Text className="text-slate-300 text-xs font-medium">
+          Kabupaten Tanah Bumbu
         </Text>
       </View>
     </View>

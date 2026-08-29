@@ -45,7 +45,7 @@ export default function LoginScreen() {
       
       {/* Header/Logo */}
       <View className="items-center mb-10">
-        <View className="mb-4 flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-amber-400 to-orange-600 shadow-lg shadow-orange-500/40">
+        <View className="mb-4 flex h-20 w-20 items-center justify-center">
           <Lightbulb color="white" size={40} />
         </View>
         <Text className="text-3xl font-extrabold text-white">Masuk Arunika</Text>

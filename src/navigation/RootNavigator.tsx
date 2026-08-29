@@ -1,24 +1,29 @@
-import React, { useEffect } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { useAuthStore } from '../store/authStore';
+import React, { useEffect } from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import { useAuthStore } from "../store/authStore";
+//import { registerForPushNotificationsAsync } from '../utils/pushNotifications';
 
-import AuthStack from './AuthStack';
-import WargaTab from './WargaTab';
-import PetugasTab from './PetugasTab';
-import SplashScreen from '../screens/SplashScreen';
+import AuthStack from "./AuthStack";
+import WargaTab from "./WargaTab";
+import PetugasTab from "./PetugasTab";
+import AdminTab from './AdminTab';
+import SplashScreen from "../screens/SplashScreen";
 
 export default function RootNavigator() {
   const { token, role, isLoading, checkAuth } = useAuthStore();
 
   useEffect(() => {
-    // Memberikan jeda visual sedikit agar animasi splash screen terlihat
-    // (Opsional: bisa dihilangkan setTimeout-nya jika ingin secepat kilat)
     setTimeout(() => {
       checkAuth();
-    }, 1500); 
+    }, 1500);
   }, []);
 
-  // Selama isLoading true, tampilkan Splash Screen Arunika
+  useEffect(() => {
+    if (token) {
+      //registerForPushNotificationsAsync();
+    }
+  }, [token]);
+
   if (isLoading) {
     return <SplashScreen />;
   }
@@ -27,6 +32,8 @@ export default function RootNavigator() {
     <NavigationContainer>
       {token === null ? (
         <AuthStack />
+      ) : role === 'admin' ? (
+        <AdminTab />
       ) : role === 'petugas' ? (
         <PetugasTab />
       ) : (
