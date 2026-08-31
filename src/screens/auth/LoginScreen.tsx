@@ -4,6 +4,7 @@ import { Lightbulb, Phone, Lock } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import apiClient from '../../api/client';
 import { useAuthStore } from '../../store/authStore';
+import { registerForPushNotificationsAsync } from '../../utils/pushNotification';
 
 export default function LoginScreen() {
   const navigation = useNavigation<any>();
@@ -28,7 +29,22 @@ export default function LoginScreen() {
 
       const { data, role, token } = response.data;
       
-      // Simpan ke AsyncStorage & Zustand (Otomatis memicu pindah halaman)
+      if (token) {
+        const fcmToken = await registerForPushNotificationsAsync();
+        
+        if (fcmToken) {
+            try {
+                await apiClient.post('/fcm-token', { fcm_token: fcmToken }, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+                console.log('FCM Token berhasil dikirim ke server!');
+            } catch (error) {
+                console.log('Gagal mengirim FCM token ke server', error);
+            }
+        }
+      }
       await login(data, role, token);
 
     } catch (error: any) {

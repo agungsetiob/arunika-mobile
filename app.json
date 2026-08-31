@@ -38,17 +38,23 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "2a65cf0a-04b6-4103-b2f2-4d948d1d22bd"
+      }
     }
   },
   "plugins": [
-      "expo-font",
-      "expo-secure-store",
-      [
-        "expo-notifications",
-        {
-          "icon": "./assets/logo-kemenhub.png",
-          "color": "#ea580c"
-        }
-      ]
+    "expo-font",
+    "expo-secure-store",
+    "expo-notifications",
+    [
+      "expo-notifications",
+      {
+        "icon": "./assets/logo-kemenhub.png",
+        "color": "#ea580c"
+      }
     ]
+  ]
 }
