@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   View,
   Text,
@@ -13,13 +14,13 @@ import * as Location from "expo-location";
 import * as ImagePicker from "expo-image-picker";
 import * as ImageManipulator from "expo-image-manipulator";
 import { Plus, Search, Bell, X, Zap, AlertTriangle } from "lucide-react-native";
-import { useNavigation } from "@react-navigation/native";
 import { useAuthStore } from "../../store/authStore";
 import apiClient from "../../api/client";
 
 export default function HomeScreen() {
   const navigation = useNavigation<any>();
   const user = useAuthStore((state) => state.user);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const [location, setLocation] = useState<Location.LocationObject | null>(
     null,
@@ -67,6 +68,20 @@ export default function HomeScreen() {
       }
     })();
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      const fetchUnreadCount = async () => {
+        try {
+          const response = await apiClient.get('/notifications');
+          setUnreadCount(response.data.unread_count);
+        } catch (error) {
+          console.log('Gagal fetch unread count', error);
+        }
+      };
+      fetchUnreadCount();
+    }, [])
+  );
 
   const handleLapor = async (lampId?: number) => {
     if (!location) {
@@ -126,10 +141,15 @@ export default function HomeScreen() {
             </Text>
           </View>
 
-          <TouchableOpacity className="bg-white/20 p-2 rounded-full relative">
+          <TouchableOpacity 
+            onPress={() => navigation.navigate('Notifications')}
+            className="bg-white/20 p-2 rounded-full relative"
+          >
             <Bell size={24} color="white" />
 
-            <View className="absolute top-2 right-2 bg-red-500 w-2.5 h-2.5 rounded-full border border-orange-600" />
+            {unreadCount > 0 && (
+              <View className="absolute top-1.5 right-1.5 bg-red-500 w-3 h-3 rounded-full border-2 border-orange-600" />
+            )}
           </TouchableOpacity>
         </View>
 

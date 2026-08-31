@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, FlatList, TouchableOpacity, RefreshControl, ActivityIndicator, ScrollView } from 'react-native';
-import { Wrench, MapPin, ChevronRight, CheckCircle, Clock } from 'lucide-react-native';
+import { Wrench, MapPin, ChevronRight, CheckCircle, Clock, Bell } from 'lucide-react-native'; // Tambahkan Bell
 import apiClient from '../../api/client';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native'; // Tambahkan useFocusEffect
 
 export default function TugasListScreen() {
   const navigation = useNavigation<any>();
@@ -19,6 +19,24 @@ export default function TugasListScreen() {
 
   // State Filter
   const [activeFilter, setActiveFilter] = useState(''); // '' = Semua
+
+  // State Notifikasi
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  // Ambil jumlah notifikasi setiap kali halaman petugas ini aktif
+  useFocusEffect(
+    useCallback(() => {
+      const fetchUnreadCount = async () => {
+        try {
+          const response = await apiClient.get('/notifications');
+          setUnreadCount(response.data.unread_count);
+        } catch (error) {
+          console.log('Gagal fetch unread count', error);
+        }
+      };
+      fetchUnreadCount();
+    }, [])
+  );
 
   const fetchAssignments = async (pageNumber = 1, currentStatus = activeFilter) => {
     if (pageNumber === 1) setLoading(true);
@@ -145,9 +163,19 @@ export default function TugasListScreen() {
           <Text className="text-sky-200 text-xs font-bold uppercase tracking-widest mb-1">Operasional</Text>
           <Text className="text-2xl font-extrabold text-white">Daftar Tugas</Text>
         </View>
-        <View className="h-12 w-12 bg-white/20 rounded-2xl items-center justify-center border border-white/20">
-          <Wrench size={24} color="white" />
-        </View>
+        
+        {/* Tombol Lonceng Notifikasi */}
+        <TouchableOpacity 
+          onPress={() => navigation.navigate('Notifications')}
+          className="h-12 w-12 bg-white/20 rounded-2xl items-center justify-center border border-white/20 relative"
+        >
+          <Bell size={24} color="white" />
+          
+          {/* Dot Merah jika ada notifikasi belum dibaca */}
+          {unreadCount > 0 && (
+            <View className="absolute top-2.5 right-2.5 bg-red-500 w-3 h-3 rounded-full border-2 border-sky-600" />
+          )}
+        </TouchableOpacity>
       </View>
 
       {/* Filter Horizontal (Melayang di bawah header) */}
