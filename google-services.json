@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "570588506119",
+    "project_id": "sipelita-4cae3",
+    "storage_bucket": "sipelita-4cae3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:570588506119:android:b3d2374fc3908e0bd8a2a2",
+        "android_client_info": {
+          "package_name": "com.agung.arunika"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBiqcaao5xhchfdCEL5Ui9SZoxRbJbkjpo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
