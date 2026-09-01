@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator, ScrollView } from 'react-native';
-import { User, Phone, Lock, CreditCard } from 'lucide-react-native';
+import { User, Phone, Lock, CreditCard, Mail } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import apiClient from '../../api/client';
 import { useAuthStore } from '../../store/authStore';
@@ -9,11 +9,11 @@ export default function RegisterScreen() {
   const navigation = useNavigation<any>();
   const login = useAuthStore((state) => state.login);
   
-  const [form, setForm] = useState({ name: '', phone: '', nik: '', password: '' });
+  const [form, setForm] = useState({ name: '', email: '', phone: '', nik: '', password: '' });
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
-    if (!form.name || !form.phone || !form.nik || !form.password) {
+    if (!form.name || !form.email || !form.phone || !form.nik || !form.password) {
       Alert.alert('Error', 'Semua kolom wajib diisi!');
       return;
     }
@@ -47,6 +47,12 @@ export default function RegisterScreen() {
           <User color="#94a3b8" size={20} />
           <TextInput className="flex-1 text-white ml-3" placeholder="Nama Lengkap" placeholderTextColor="#64748b"
             onChangeText={(t) => setForm({ ...form, name: t })} />
+        </View>
+
+        <View className="flex-row items-center bg-slate-800 rounded-xl px-4 h-14 border border-slate-700">
+          <Mail color="#94a3b8" size={20} />
+          <TextInput className="flex-1 text-white ml-3" placeholder="Email" placeholderTextColor="#64748b" keyboardType="email-address"
+            onChangeText={(t) => setForm({ ...form, email: t })} />
         </View>
 
         <View className="flex-row items-center bg-slate-800 rounded-xl px-4 h-14 border border-slate-700">

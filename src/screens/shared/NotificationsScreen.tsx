@@ -3,12 +3,16 @@ import { View, Text, TouchableOpacity, FlatList, ActivityIndicator, RefreshContr
 import { ArrowLeft, Bell, CheckCircle2, Wrench, ShieldAlert, CheckCheck } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import apiClient from '../../api/client';
+import { useAuthStore } from '../../store/authStore';
 
 export default function NotificationsScreen() {
   const navigation = useNavigation();
   const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const role = useAuthStore((state) => state.role);
+  const bgTheme = role === 'admin' ? 'bg-violet-600' : role === 'petugas' ? 'bg-sky-600' : 'bg-orange-600';
+  const iconTheme = role === 'admin' ? '#7c3aed' : role === 'petugas' ? '#0284c7' : '#ea580c';
 
   // Ambil data dari API Laravel
   const fetchNotifications = async () => {
@@ -84,7 +88,7 @@ export default function NotificationsScreen() {
   if (loading) {
     return (
       <View className="flex-1 bg-slate-50 justify-center items-center">
-        <ActivityIndicator size="large" color="#ea580c" />
+        <ActivityIndicator size="large" color={iconTheme} />
       </View>
     );
   }
@@ -95,7 +99,7 @@ export default function NotificationsScreen() {
   return (
     <View className="flex-1 bg-slate-50">
       {/* Header */}
-      <View className="bg-orange-600 pt-14 pb-4 px-4 flex-row items-center justify-between shadow-sm">
+      <View className={`${bgTheme} pt-14 pb-4 px-4 flex-row items-center justify-between shadow-sm`}>
         <View className="flex-row items-center">
             <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
             <ArrowLeft color="white" size={24} />
@@ -117,7 +121,7 @@ export default function NotificationsScreen() {
         keyExtractor={item => item.id}
         contentContainerStyle={{ padding: 16 }}
         refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#ea580c"]} />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[iconTheme]} />
         }
         ListEmptyComponent={
           <View className="flex-1 items-center justify-center mt-20">

@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, FlatList, TouchableOpacity, RefreshControl, ActivityIndicator, ScrollView } from 'react-native';
-import { Wrench, MapPin, ChevronRight, CheckCircle, Clock, Bell } from 'lucide-react-native'; // Tambahkan Bell
+import { Wrench, MapPin, ChevronRight, CheckCircle, Clock, Bell, AlertTriangle } from 'lucide-react-native'; // Tambahkan AlertTriangle
 import apiClient from '../../api/client';
-import { useNavigation, useFocusEffect } from '@react-navigation/native'; // Tambahkan useFocusEffect
+import { useNavigation, useFocusEffect } from '@react-navigation/native'; 
 
 export default function TugasListScreen() {
   const navigation = useNavigation<any>();
@@ -18,12 +18,11 @@ export default function TugasListScreen() {
   const [loadingMore, setLoadingMore] = useState(false);
 
   // State Filter
-  const [activeFilter, setActiveFilter] = useState(''); // '' = Semua
+  const [activeFilter, setActiveFilter] = useState(''); 
 
   // State Notifikasi
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // Ambil jumlah notifikasi setiap kali halaman petugas ini aktif
   useFocusEffect(
     useCallback(() => {
       const fetchUnreadCount = async () => {
@@ -85,21 +84,18 @@ export default function TugasListScreen() {
     fetchAssignments(1, activeFilter);
   }, [activeFilter]);
 
-  // Fungsi saat scroll menyentuh bawah
   const handleLoadMore = () => {
     if (hasMore && !loadingMore && !loading) {
       fetchAssignments(page + 1, activeFilter);
     }
   };
 
-  // Fungsi ganti filter
   const changeFilter = (status: string) => {
-    if (activeFilter === status) return; // Cegah fetch jika klik filter yang sama
+    if (activeFilter === status) return; 
     setActiveFilter(status);
     fetchAssignments(1, status);
   };
 
-  // Komponen Loading Bawah
   const renderFooter = () => {
     if (!loadingMore) return null;
     return (
@@ -120,10 +116,22 @@ export default function TugasListScreen() {
     }
   };
 
+  // Helper untuk Warna Prioritas
+  const getPriorityBadge = (priority: string) => {
+    switch (priority) {
+      case 'emergency': return { label: 'DARURAT', bg: 'bg-red-100', text: 'text-red-700', isEmergency: true };
+      case 'high': return { label: 'TINGGI', bg: 'bg-orange-100', text: 'text-orange-700', isEmergency: false };
+      case 'low': return { label: 'RENDAH', bg: 'bg-slate-100', text: 'text-slate-600', isEmergency: false };
+      case 'medium':
+      default: return { label: 'MENENGAH', bg: 'bg-blue-100', text: 'text-blue-700', isEmergency: false };
+    }
+  };
+
   const renderItem = ({ item }: { item: any }) => {
     const badge = getAssignmentBadge(item.status);
     const date = new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
     const report = item.report;
+    const priority = report?.priority ? getPriorityBadge(report.priority) : null;
 
     return (
       <TouchableOpacity 
@@ -132,18 +140,34 @@ export default function TugasListScreen() {
         className="bg-white mx-4 my-2 rounded-2xl p-4 shadow-sm border border-slate-100"
       >
         <View className="flex-row justify-between items-start mb-3">
-          <View className={`px-2.5 py-1.5 rounded-md flex-row items-center space-x-1.5 ${badge.bg}`}>
-            {badge.icon}
-            <Text className={`text-[10px] font-bold uppercase tracking-wider ${badge.text}`}>{badge.label}</Text>
+          {/* Kumpulan Badge Kiri */}
+          <View className="flex-row items-center flex-wrap gap-2">
+            <View className={`px-2.5 py-1.5 rounded-md flex-row items-center space-x-1.5 ${badge.bg}`}>
+              {badge.icon}
+              <Text className={`text-[10px] font-bold uppercase tracking-wider ${badge.text}`}>{badge.label}</Text>
+            </View>
+
+            {/* Badge Prioritas */}
+            {priority && (
+              <View className={`px-2.5 py-1.5 rounded-md flex-row items-center space-x-1 border border-white ${priority.bg}`}>
+                {priority.isEmergency && <AlertTriangle size={10} color="#b91c1c" />}
+                <Text className={`text-[10px] font-bold uppercase tracking-wider ${priority.text}`}>
+                  {priority.label}
+                </Text>
+              </View>
+            )}
           </View>
-          <Text className="text-xs text-slate-400 font-medium font-mono">{date}</Text>
+
+          <Text className="text-xs text-slate-400 font-medium font-mono ml-2">{date}</Text>
         </View>
+
         <Text className="text-slate-800 font-bold text-base mb-1">
           {report?.type === 'pju' ? 'Perbaikan PJU' : 'Perbaikan Traffic Light'}
         </Text>
         <Text className="text-slate-500 text-xs mb-3 font-medium uppercase tracking-wider">
           {report?.damage_category?.replace(/_/g, ' ')}
         </Text>
+        
         <View className="flex-row items-center bg-slate-50 p-2.5 rounded-lg border border-slate-100">
           <MapPin size={16} color="#0284c7" />
           <Text className="text-slate-600 text-xs ml-2 flex-1" numberOfLines={2}>
@@ -164,21 +188,19 @@ export default function TugasListScreen() {
           <Text className="text-2xl font-extrabold text-white">Daftar Tugas</Text>
         </View>
         
-        {/* Tombol Lonceng Notifikasi */}
         <TouchableOpacity 
           onPress={() => navigation.navigate('Notifications')}
           className="h-12 w-12 bg-white/20 rounded-2xl items-center justify-center border border-white/20 relative"
         >
           <Bell size={24} color="white" />
           
-          {/* Dot Merah jika ada notifikasi belum dibaca */}
           {unreadCount > 0 && (
             <View className="absolute top-2.5 right-2.5 bg-red-500 w-3 h-3 rounded-full border-2 border-sky-600" />
           )}
         </TouchableOpacity>
       </View>
 
-      {/* Filter Horizontal (Melayang di bawah header) */}
+      {/* Filter Horizontal */}
       <View className="bg-sky-600 pb-4 shadow-md rounded-b-[30px] z-10">
         <ScrollView 
           horizontal 
@@ -190,7 +212,6 @@ export default function TugasListScreen() {
             const statusValue = isAll ? '' : statusOption;
             const isActive = activeFilter === statusValue;
             
-            // Label khusus untuk UI
             const label = isAll ? 'Semua' : 
                           statusOption === 'assigned' ? 'Baru' : 
                           statusOption === 'accepted' ? 'Diterima' : 
@@ -229,7 +250,6 @@ export default function TugasListScreen() {
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.5}
           ListFooterComponent={renderFooter}
-          
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#0284c7']} />}
           ListEmptyComponent={
             <View className="flex-1 items-center justify-center px-8 mt-20">

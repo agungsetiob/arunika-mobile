@@ -8,7 +8,6 @@ export default function AboutScreen() {
   const navigation = useNavigation<any>();
   const role = useAuthStore((state) => state.role);
 
-  // Tema warna dinamis sesuai role
   const bgTheme = role === 'admin' ? 'bg-violet-600' : role === 'petugas' ? 'bg-sky-600' : 'bg-orange-600';
   const iconTheme = role === 'admin' ? '#7c3aed' : role === 'petugas' ? '#0284c7' : '#ea580c';
 
