@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, View, Text, TouchableOpacity, Animated } from 'react-native';
+import { Modal, View, Text, TouchableOpacity } from 'react-native';
 import { CheckCircle2, XCircle, AlertTriangle, Info } from 'lucide-react-native';
 
 export type AlertType = 'success' | 'error' | 'warning' | 'info';
@@ -31,51 +31,66 @@ export default function CustomAlert({
 
   const getIcon = () => {
     switch (type) {
-      case 'success': return <CheckCircle2 size={36} color="#10b981" />; // Emerald
-      case 'error': return <XCircle size={36} color="#ef4444" />; // Red
-      case 'warning': return <AlertTriangle size={36} color="#f59e0b" />; // Amber
-      default: return <Info size={36} color="#3b82f6" />; // Blue
+      case 'success':
+        return <CheckCircle2 size={36} color="#10b981" />;
+      case 'error':
+        return <XCircle size={36} color="#ef4444" />;
+      case 'warning':
+        return <AlertTriangle size={36} color="#f59e0b" />;
+      default:
+        return <Info size={36} color="#3b82f6" />;
     }
   };
 
-  const getButtonColor = () => {
+  const getButtonTextColor = () => {
     switch (type) {
-      case 'success': return 'bg-emerald-500';
-      case 'error': return 'bg-red-500';
-      case 'warning': return 'bg-amber-500';
-      default: return 'bg-blue-500';
+      case 'error':
+        return 'text-red-500';
+      case 'warning':
+        return 'text-amber-500';
+      default:
+        return 'text-blue-500';
     }
   };
 
   return (
     <Modal transparent animationType="fade" visible={visible}>
       <View className="flex-1 justify-center items-center bg-black/50 px-5">
-        <View className="bg-white w-full max-w-sm rounded-3xl p-6 items-center shadow-xl">
-          <View className="mb-4">
-            {getIcon()}
+        {/* Card alert – style iOS */}
+        <View className="bg-white w-full max-w-sm rounded-3xl overflow-hidden shadow-xl">
+          {/* Konten atas (icon, judul, pesan) */}
+          <View className="p-6 items-center">
+            <View className="mb-4">{getIcon()}</View>
+            <Text className="text-lg font-semibold text-slate-800 mb-2 text-center">
+              {title}
+            </Text>
+            <Text className="text-sm text-slate-500 text-center leading-relaxed">
+              {message}
+            </Text>
           </View>
-          
-          <Text className="text-xl font-extrabold text-slate-800 mb-2 text-center">
-            {title}
-          </Text>
-          <Text className="text-sm text-slate-500 text-center mb-6 leading-relaxed">
-            {message}
-          </Text>
 
-          <View className={`flex-row w-full ${showCancel ? 'space-x-3' : ''}`}>
+          {/* Area tombol – gaya iOS (garis pemisah, teks saja) */}
+          <View className="border-t border-slate-200 flex-row">
             {showCancel && (
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={onCancel}
-                className="flex-1 py-3.5 rounded-xl bg-slate-100 items-center justify-center border border-slate-200"
+                activeOpacity={0.7}
+                className="flex-1 py-3 items-center justify-center"
+                style={{ borderRightWidth: 1, borderRightColor: '#e2e8f0' }}
               >
-                <Text className="font-bold text-slate-600">{cancelText}</Text>
+                <Text className="font-medium text-base text-slate-500">
+                  {cancelText}
+                </Text>
               </TouchableOpacity>
             )}
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={onConfirm}
-              className={`flex-1 py-3.5 rounded-xl items-center justify-center ${getButtonColor()}`}
+              activeOpacity={0.7}
+              className="flex-1 py-3 items-center justify-center"
             >
-              <Text className="font-bold text-white">{confirmText}</Text>
+              <Text className={`font-semibold text-base ${getButtonTextColor()}`}>
+                {confirmText}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

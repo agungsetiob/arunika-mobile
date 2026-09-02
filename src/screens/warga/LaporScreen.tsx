@@ -4,7 +4,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import * as Location from 'expo-location';
 import { ChevronLeft, MapPin } from 'lucide-react-native';
 import apiClient from '../../api/client';
-import CustomAlert, { AlertType } from '../../components/CustomAlert'; // Sesuaikan path
+import CustomAlert, { AlertType } from '../../components/CustomAlert';
 
 export default function LaporScreen() {
   const navigation = useNavigation<any>();
@@ -201,7 +201,6 @@ export default function LaporScreen() {
         </View>
       </ScrollView>
 
-      {/* Komponen Custom Alert (Render di luar ScrollView agar overlay bekerja maksimal) */}
       <CustomAlert 
         visible={alertConfig.visible}
         title={alertConfig.title}
