@@ -95,7 +95,7 @@ export default function TugasDetailScreen() {
       });
 
       Alert.alert('Berhasil', 'Status tugas berhasil diperbarui.');
-      fetchDetail(); // Refresh data setelah update
+      fetchDetail();
 
     } catch (error: any) {
       Alert.alert('Gagal', error.response?.data?.message || 'Terjadi kesalahan saat mengupdate status.');

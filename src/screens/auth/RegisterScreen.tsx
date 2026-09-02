@@ -24,7 +24,6 @@ export default function RegisterScreen() {
       const { data, token } = response.data;
       
       Alert.alert('Sukses', 'Akun berhasil dibuat!');
-      // Langsung login otomatis sebagai warga
       await login(data, 'warga', token);
 
     } catch (error: any) {

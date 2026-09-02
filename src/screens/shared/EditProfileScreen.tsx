@@ -22,7 +22,6 @@ export default function EditProfileScreen() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Menyesuaikan warna berdasarkan role yang sedang login
   const themeColor =
     role === "admin" ? "#7c3aed" : role === "petugas" ? "#0284c7" : "#ea580c";
   const bgTheme =
@@ -38,7 +37,6 @@ export default function EditProfileScreen() {
         ? "shadow-sky-500/30"
         : "shadow-orange-500/30";
 
-  // 2. Perbarui fungsi handleSave
   const handleSave = async () => {
     if (!name.trim() || !phone.trim()) {
       Alert.alert("Error", "Nama dan Nomor HP tidak boleh kosong.");
@@ -54,7 +52,6 @@ export default function EditProfileScreen() {
 
       const response = await apiClient.put("/profile", payload);
 
-      // SUNTIKKAN DATA BARU LANGSUNG KE ZUSTAND
       setUser(response.data.data);
 
       Alert.alert("Berhasil", "Profil Anda berhasil diperbarui.", [
@@ -73,7 +70,7 @@ export default function EditProfileScreen() {
 
   return (
     <View className="flex-1 bg-slate-50">
-      {/* Header Dinamis */}
+      {/* Header */}
       <View
         className={`${bgTheme} pt-12 pb-4 px-4 flex-row items-center shadow-md z-10`}
       >
@@ -87,7 +84,6 @@ export default function EditProfileScreen() {
       </View>
 
       <ScrollView contentContainerStyle={{ padding: 24 }}>
-        {/* Form Nama */}
         <View className="mb-5">
           <Text className="text-slate-600 font-bold mb-2 ml-1">
             Nama Lengkap
@@ -103,7 +99,6 @@ export default function EditProfileScreen() {
           </View>
         </View>
 
-        {/* Form No HP */}
         <View className="mb-5">
           <Text className="text-slate-600 font-bold mb-2 ml-1">
             Nomor Handphone
@@ -120,7 +115,6 @@ export default function EditProfileScreen() {
           </View>
         </View>
 
-        {/* Form Password */}
         <View className="mb-8">
           <Text className="text-slate-600 font-bold mb-2 ml-1">
             Password Baru (Opsional)
@@ -140,7 +134,6 @@ export default function EditProfileScreen() {
           </Text>
         </View>
 
-        {/* Tombol Simpan Dinamis */}
         <TouchableOpacity
           onPress={handleSave}
           disabled={loading}

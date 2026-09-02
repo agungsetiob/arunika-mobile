@@ -39,9 +39,8 @@ export default function NotificationsScreen() {
 
   // Fungsi tandai satu pesan sudah dibaca
   const markAsRead = async (id: string, readAt: string | null) => {
-    if (readAt !== null) return; // Jika sudah dibaca, abaikan saja
+    if (readAt !== null) return;
     
-    // Update UI seketika (Optimistic Update) agar aplikasi terasa cepat
     setNotifications(notifications.map(n => n.id === id ? { ...n, read_at: new Date().toISOString() } : n));
     
     try {
@@ -51,7 +50,6 @@ export default function NotificationsScreen() {
     }
   };
 
-  // Fungsi tandai semua sudah dibaca
   const markAllAsRead = async () => {
     setNotifications(notifications.map(n => ({ ...n, read_at: new Date().toISOString() })));
     try {
@@ -77,7 +75,6 @@ export default function NotificationsScreen() {
     }
   };
 
-  // Format tanggal ke format lokal yang mudah dibaca
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('id-ID', { 
@@ -93,7 +90,6 @@ export default function NotificationsScreen() {
     );
   }
 
-  // Cek apakah ada notifikasi yang belum dibaca
   const hasUnread = notifications.some(n => n.read_at === null);
 
   return (
@@ -133,7 +129,7 @@ export default function NotificationsScreen() {
         }
         renderItem={({ item }) => {
           const isUnread = item.read_at === null; // Null berarti belum dibaca
-          const notifData = item.data; // Isi JSON dari Laravel
+          const notifData = item.data;
 
           return (
             <TouchableOpacity 
@@ -152,7 +148,6 @@ export default function NotificationsScreen() {
                   <Text className={`flex-1 font-bold ${!isUnread ? 'text-slate-800' : 'text-orange-900'}`}>
                     {notifData.title}
                   </Text>
-                  {/* Dot penanda belum dibaca */}
                   {isUnread && (
                     <View className="w-2.5 h-2.5 bg-orange-500 rounded-full ml-2 mt-1" />
                   )}

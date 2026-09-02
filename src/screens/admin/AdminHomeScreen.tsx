@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, FlatList, TouchableOpacity, RefreshControl, ActivityIndicator, Image } from 'react-native';
-import { ShieldCheck, MapPin, ChevronRight, AlertCircle, Bell } from 'lucide-react-native'; // Tambahkan Bell
+import { ShieldCheck, MapPin, ChevronRight, AlertCircle, Bell } from 'lucide-react-native';
 import apiClient from '../../api/client';
-import { useNavigation, useFocusEffect } from '@react-navigation/native'; // Tambahkan useFocusEffect
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
 export default function AdminHomeScreen() {
   const navigation = useNavigation<any>();
@@ -152,14 +152,12 @@ export default function AdminHomeScreen() {
           <Text className="text-2xl font-extrabold text-white">Laporan Masuk</Text>
         </View>
         
-        {/* Tombol Lonceng Notifikasi */}
         <TouchableOpacity 
           onPress={() => navigation.navigate('Notifications')}
           className="h-12 w-12 bg-white/20 rounded-2xl items-center justify-center border border-white/20 relative"
         >
           <Bell size={24} color="white" />
           
-          {/* Dot Merah jika ada notifikasi belum dibaca */}
           {unreadCount > 0 && (
             <View className="absolute top-2.5 right-2.5 bg-red-500 w-3 h-3 rounded-full border-2 border-violet-600" />
           )}

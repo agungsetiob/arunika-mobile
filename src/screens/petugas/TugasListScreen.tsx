@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, FlatList, TouchableOpacity, RefreshControl, ActivityIndicator, ScrollView } from 'react-native';
-import { Wrench, MapPin, ChevronRight, CheckCircle, Clock, Bell, AlertTriangle } from 'lucide-react-native'; // Tambahkan AlertTriangle
+import { Wrench, MapPin, ChevronRight, CheckCircle, Clock, Bell, AlertTriangle } from 'lucide-react-native';
 import apiClient from '../../api/client';
 import { useNavigation, useFocusEffect } from '@react-navigation/native'; 
 

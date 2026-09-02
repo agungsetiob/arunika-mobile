@@ -1,42 +1,59 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert, TextInput } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, TextInput } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { ChevronLeft, MapPin, UserCheck, CheckCircle2, XCircle, FileWarning, AlertTriangle } from 'lucide-react-native';
+import { ChevronLeft, MapPin, UserCheck, CheckCircle2, XCircle, FileWarning, AlertTriangle, Search, X } from 'lucide-react-native';
 import apiClient from '../../api/client';
+import CustomAlert, { AlertType } from '../../components/CustomAlert'; // Sesuaikan path
 
 export default function AdminAssignScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const { report } = route.params;
 
-  // State status laporan real-time
   const [currentStatus, setCurrentStatus] = useState(report.status);
   
-  // State Assign (Petugas & Priority)
+  // State Petugas & Pencarian
   const [petugasList, setPetugasList] = useState<any[]>([]);
   const [selectedPetugas, setSelectedPetugas] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   
-  // BARU: State untuk Prioritas (Default: medium)
   const [selectedPriority, setSelectedPriority] = useState<string>('medium');
-  
-  // State Rejection (Tolak)
   const [isRejecting, setIsRejecting] = useState(false);
   const [rejectNotes, setRejectNotes] = useState('');
   
-  // Loading states
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  // Custom Alert State
+  const [alertConfig, setAlertConfig] = useState({
+    visible: false,
+    title: '',
+    message: '',
+    type: 'info' as AlertType,
+    onConfirm: () => closeAlert(),
+  });
+
+  const showAlert = (title: string, message: string, type: AlertType, onConfirm: () => void = closeAlert) => {
+    setAlertConfig({ visible: true, title, message, type, onConfirm });
+  };
+  const closeAlert = () => setAlertConfig(prev => ({ ...prev, visible: false }));
+
+  // Pencarian dengan Debounce
   useEffect(() => {
     if (currentStatus === 'verified') {
-      fetchPetugas();
-    }
-  }, [currentStatus]);
+      const delayDebounceFn = setTimeout(() => {
+        fetchPetugas(searchQuery);
+      }, 500); // Tunggu 500ms setelah user berhenti ngetik
 
-  const fetchPetugas = async () => {
+      return () => clearTimeout(delayDebounceFn);
+    }
+  }, [currentStatus, searchQuery]);
+
+  const fetchPetugas = async (query = '') => {
     setLoading(true);
     try {
-      const response = await apiClient.get('/admin/petugas');
+      // Mengirim query search ke API
+      const response = await apiClient.get('/admin/petugas', { params: { search: query } });
       setPetugasList(response.data.data);
     } catch (error) {
       console.log('Error fetch petugas:', error);
@@ -49,10 +66,10 @@ export default function AdminAssignScreen() {
     setSubmitting(true);
     try {
       await apiClient.post(`/admin/reports/${report.id}/verify`);
-      Alert.alert('Berhasil', 'Laporan valid. Silakan tentukan prioritas dan pilih petugas.');
+      showAlert('Berhasil', 'Laporan valid. Silakan tentukan prioritas dan pilih petugas.', 'success');
       setCurrentStatus('verified'); 
     } catch (error) {
-      Alert.alert('Gagal', 'Terjadi kesalahan saat memverifikasi laporan.');
+      showAlert('Gagal', 'Terjadi kesalahan saat memverifikasi laporan.', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -60,54 +77,53 @@ export default function AdminAssignScreen() {
 
   const handleReject = async () => {
     if (!rejectNotes.trim()) {
-      Alert.alert('Peringatan', 'Alasan penolakan wajib diisi!');
+      showAlert('Peringatan', 'Alasan penolakan wajib diisi!', 'warning');
       return;
     }
     setSubmitting(true);
     try {
       await apiClient.post(`/admin/reports/${report.id}/reject`, { notes: rejectNotes });
-      Alert.alert('Berhasil', 'Laporan telah ditolak.', [
-        { text: 'OK', onPress: () => navigation.goBack() }
-      ]);
+      showAlert('Berhasil', 'Laporan telah ditolak.', 'success', () => {
+        closeAlert();
+        navigation.goBack();
+      });
     } catch (error) {
-      Alert.alert('Gagal', 'Terjadi kesalahan saat menolak laporan.');
+      showAlert('Gagal', 'Terjadi kesalahan saat menolak laporan.', 'error');
       setSubmitting(false);
     }
   };
 
   const handleAssign = async () => {
     if (!selectedPetugas) {
-      Alert.alert('Peringatan', 'Pilih petugas lapangan terlebih dahulu!');
+      showAlert('Peringatan', 'Pilih petugas lapangan terlebih dahulu!', 'warning');
       return;
     }
     setSubmitting(true);
     try {
-      // TAMBAHKAN parameter priority ke body request
       await apiClient.post('/admin/assignments', {
         report_id: report.id,
         user_id: selectedPetugas,
-        priority: selectedPriority, // <--- Ini parameter barunya
+        priority: selectedPriority,
       });
-      Alert.alert('Berhasil', `Tugas dengan prioritas ${selectedPriority.toUpperCase()} telah diberikan kepada petugas lapangan.`, [
-        { text: 'OK', onPress: () => navigation.goBack() }
-      ]);
+      showAlert('Berhasil', `Tugas dengan prioritas ${selectedPriority.toUpperCase()} telah diberikan.`, 'success', () => {
+        closeAlert();
+        navigation.goBack();
+      });
     } catch (error: any) {
-      Alert.alert('Gagal', error.response?.data?.message || 'Gagal menugaskan.');
+      showAlert('Gagal', error.response?.data?.message || 'Gagal menugaskan.', 'error');
       setSubmitting(false);
     }
   };
 
-  // Helper Array untuk me-render pilihan priority
   const priorities = [
-    { id: 'low', label: 'Rendah (Low)', color: 'bg-slate-100', activeColor: 'bg-slate-600', textColor: 'text-slate-600', activeTextColor: 'text-white' },
-    { id: 'medium', label: 'Sedang (Medium)', color: 'bg-blue-50', activeColor: 'bg-blue-600', textColor: 'text-blue-600', activeTextColor: 'text-white' },
-    { id: 'high', label: 'Tinggi (High)', color: 'bg-orange-50', activeColor: 'bg-orange-600', textColor: 'text-orange-600', activeTextColor: 'text-white' },
+    { id: 'low', label: 'Rendah', color: 'bg-slate-100', activeColor: 'bg-slate-600', textColor: 'text-slate-600', activeTextColor: 'text-white' },
+    { id: 'medium', label: 'Sedang', color: 'bg-blue-50', activeColor: 'bg-blue-600', textColor: 'text-blue-600', activeTextColor: 'text-white' },
+    { id: 'high', label: 'Tinggi', color: 'bg-orange-50', activeColor: 'bg-orange-600', textColor: 'text-orange-600', activeTextColor: 'text-white' },
     { id: 'emergency', label: 'Darurat!', color: 'bg-red-50', activeColor: 'bg-red-600', textColor: 'text-red-600', activeTextColor: 'text-white' },
   ];
 
   return (
     <View className="flex-1 bg-slate-50">
-      {/* Header */}
       <View className="bg-violet-600 pt-12 pb-4 px-4 flex-row items-center shadow-md z-10">
         <TouchableOpacity onPress={() => navigation.goBack()} className="p-2 -ml-2">
           <ChevronLeft size={28} color="white" />
@@ -115,13 +131,12 @@ export default function AdminAssignScreen() {
         <Text className="text-lg font-bold text-white ml-2">Tindak Lanjut Laporan</Text>
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
-        {/* Info Laporan Singkat */}
+      <ScrollView contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
         <View className="bg-white p-6 shadow-sm border-b border-slate-100 mb-4">
           <View className="flex-row justify-between items-start mb-2">
             <Text className="text-xs font-bold text-violet-600 uppercase tracking-widest">Detail Laporan</Text>
-            <View className={`px-2 py-1 rounded-md ${currentStatus === 'pending' ? 'bg-yellow-100' : 'bg-blue-100'}`}>
-              <Text className={`text-[10px] font-bold uppercase ${currentStatus === 'pending' ? 'text-yellow-700' : 'text-blue-700'}`}>
+            <View className={`px-2 py-1 rounded-md ${currentStatus === 'pending' ? 'bg-amber-100' : 'bg-emerald-100'}`}>
+              <Text className={`text-[10px] font-bold uppercase ${currentStatus === 'pending' ? 'text-amber-700' : 'text-emerald-700'}`}>
                 {currentStatus}
               </Text>
             </View>
@@ -140,9 +155,6 @@ export default function AdminAssignScreen() {
           )}
         </View>
 
-        {/* --- AREA AKSI BERDASARKAN STATUS --- */}
-
-        {/* 1. Jika masih PENDING -> Tampilkan Tombol Verifikasi & Tolak */}
         {currentStatus === 'pending' && (
           <View className="px-4 mt-2">
             {!isRejecting ? (
@@ -166,7 +178,6 @@ export default function AdminAssignScreen() {
                 </TouchableOpacity>
               </View>
             ) : (
-              // Form Penolakan
               <View className="bg-red-50 p-4 rounded-2xl border border-red-200">
                 <View className="flex-row items-center mb-3">
                   <FileWarning color="#ef4444" size={20} />
@@ -174,7 +185,7 @@ export default function AdminAssignScreen() {
                 </View>
                 <TextInput
                   className="bg-white border border-red-200 rounded-xl px-4 py-3 text-slate-700 mb-3"
-                  placeholder="Masukkan alasan kenapa laporan ditolak..."
+                  placeholder="Masukkan alasan penolakan..."
                   multiline numberOfLines={3} textAlignVertical="top"
                   value={rejectNotes} onChangeText={setRejectNotes}
                 />
@@ -191,50 +202,59 @@ export default function AdminAssignScreen() {
           </View>
         )}
 
-        {/* 2. Jika sudah VERIFIED -> Tampilkan Form Prioritas & Daftar Petugas */}
         {currentStatus === 'verified' && (
           <View className="px-4 space-y-6">
-            
-            {/* --- Bagian Pemilihan Prioritas --- */}
             <View>
               <View className="flex-row items-center mb-3">
                 <AlertTriangle size={18} color="#475569" />
                 <Text className="font-extrabold text-slate-800 text-lg ml-2">Tingkat Prioritas</Text>
               </View>
-              
               <View className="flex-row flex-wrap justify-between gap-y-2">
                 {priorities.map((item) => {
                   const isActive = selectedPriority === item.id;
                   return (
                     <TouchableOpacity
-                      key={item.id}
-                      activeOpacity={0.7}
-                      onPress={() => setSelectedPriority(item.id)}
+                      key={item.id} activeOpacity={0.7} onPress={() => setSelectedPriority(item.id)}
                       className={`w-[48%] py-3 rounded-xl border ${
                         isActive ? `border-transparent ${item.activeColor} shadow-md` : `border-slate-200 bg-white`
                       } items-center justify-center`}
                     >
-                      <Text className={`font-bold ${isActive ? item.activeTextColor : item.textColor}`}>
-                        {item.label}
-                      </Text>
+                      <Text className={`font-bold ${isActive ? item.activeTextColor : item.textColor}`}>{item.label}</Text>
                     </TouchableOpacity>
                   );
                 })}
               </View>
             </View>
 
-            {/* --- Bagian Pemilihan Petugas --- */}
             <View>
-              <View className="flex-row items-center mb-3">
-                <UserCheck size={18} color="#475569" />
-                <Text className="font-extrabold text-slate-800 text-lg ml-2">Pilih Tim Lapangan</Text>
+              <View className="flex-row items-center justify-between mb-3">
+                <View className="flex-row items-center">
+                  <UserCheck size={18} color="#475569" />
+                  <Text className="font-extrabold text-slate-800 text-lg ml-2">Tim Lapangan</Text>
+                </View>
+              </View>
+
+              {/* Input Pencarian Petugas */}
+              <View className="flex-row items-center bg-white border border-slate-200 rounded-xl px-3 h-12 mb-4">
+                <Search size={20} color="#94a3b8" />
+                <TextInput 
+                  className="flex-1 h-full px-3 text-slate-700"
+                  placeholder="Cari nama petugas..."
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                />
+                {searchQuery.length > 0 && (
+                  <TouchableOpacity onPress={() => setSearchQuery('')} className="p-1">
+                    <X size={18} color="#94a3b8" />
+                  </TouchableOpacity>
+                )}
               </View>
               
-              {loading ? (
+              {loading && petugasList.length === 0 ? (
                 <ActivityIndicator size="large" color="#7c3aed" className="mt-4" />
               ) : petugasList.length === 0 ? (
-                <View className="bg-slate-100 p-4 rounded-xl border border-slate-200">
-                  <Text className="text-slate-500 text-center italic">Tidak ada petugas yang tersedia saat ini.</Text>
+                <View className="bg-slate-100 p-4 rounded-xl border border-slate-200 items-center">
+                  <Text className="text-slate-500 italic">Petugas tidak ditemukan.</Text>
                 </View>
               ) : (
                 petugasList.map((petugas) => (
@@ -260,12 +280,10 @@ export default function AdminAssignScreen() {
                 ))
               )}
             </View>
-
           </View>
         )}
       </ScrollView>
 
-      {/* Tombol Eksekusi Penugasan (Hanya muncul jika mode VERIFIED) */}
       {currentStatus === 'verified' && (
         <View className="p-4 bg-white border-t border-slate-100 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
           <TouchableOpacity 
@@ -278,12 +296,21 @@ export default function AdminAssignScreen() {
               <ActivityIndicator color="white" /> 
             ) : (
               <Text className="text-white font-bold text-lg">
-                Tugaskan ({selectedPriority.toUpperCase()})
+                Tugaskan Sekarang
               </Text>
             )}
           </TouchableOpacity>
         </View>
       )}
+
+      {/* Render Custom Alert di bagian paling bawah */}
+      <CustomAlert 
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        type={alertConfig.type}
+        onConfirm={alertConfig.onConfirm}
+      />
     </View>
   );
 }

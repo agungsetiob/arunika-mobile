@@ -7,7 +7,7 @@ import apiClient from '../../api/client';
 export default function LaporDetailScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
-  const { id } = route.params; // Mengambil ID dari parameter navigasi
+  const { id } = route.params;
 
   const [report, setReport] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -93,7 +93,7 @@ export default function LaporDetailScreen() {
           )}
         </View>
 
-        {/* Bukti Laporan (Sebelum) */}
+        {/* Bukti Laporan */}
         <View>
           <Text className="font-bold text-slate-800 mb-3 ml-1">Foto Bukti Kerusakan</Text>
           <View className="w-full h-56 bg-slate-200 rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
@@ -105,7 +105,7 @@ export default function LaporDetailScreen() {
           </View>
         </View>
 
-        {/* Hasil Perbaikan (Setelah) - Muncul Jika Sudah Selesai */}
+        {/* Hasil Perbaikan - Muncul Jika Sudah Selesai */}
         {report.status === 'completed' && (
           <View className="bg-emerald-50 p-5 rounded-2xl border border-emerald-100 shadow-sm mt-2">
             <Text className="font-bold text-emerald-800 mb-2">Perbaikan Selesai</Text>

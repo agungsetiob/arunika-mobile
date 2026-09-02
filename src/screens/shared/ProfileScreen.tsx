@@ -87,9 +87,7 @@ export default function ProfileScreen() {
   return (
     <View className="flex-1 bg-slate-50">
 
-      {/* ================================================= */}
       {/* FIXED PROFILE HEADER */}
-      {/* ================================================= */}
 
       <View
         className="bg-slate-900 rounded-b-[36px] px-6 pt-16 pb-8 items-center"
@@ -137,9 +135,7 @@ export default function ProfileScreen() {
         </View>
       </View>
 
-      {/* ================================================= */}
       {/* SCROLLABLE CONTENT */}
-      {/* ================================================= */}
 
       <ScrollView
         className="flex-1"
@@ -150,9 +146,7 @@ export default function ProfileScreen() {
         }}
         showsVerticalScrollIndicator={false}
       >
-        {/* ================================================= */}
         {/* INFORMASI AKUN */}
-        {/* ================================================= */}
 
         <View>
           <Text className="text-base font-extrabold text-slate-800 mb-3 ml-1">
@@ -161,7 +155,6 @@ export default function ProfileScreen() {
 
           <View className="bg-white rounded-3xl border border-slate-100 overflow-hidden shadow-sm">
 
-            {/* Nomor HP */}
             <View className="flex-row items-center px-5 py-4">
               <View className="h-11 w-11 rounded-2xl bg-slate-100 items-center justify-center">
                 <Phone size={20} color="#475569" />
@@ -183,7 +176,6 @@ export default function ProfileScreen() {
               <View className="h-px bg-slate-100 ml-[76px]" />
             )}
 
-            {/* NIK */}
             {user?.nik && (
               <View className="flex-row items-center px-5 py-4">
                 <View className="h-11 w-11 rounded-2xl bg-slate-100 items-center justify-center">
@@ -205,9 +197,7 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* ================================================= */}
         {/* PENGATURAN */}
-        {/* ================================================= */}
 
         <View className="mt-7">
           <Text className="text-base font-extrabold text-slate-800 mb-3 ml-1">
@@ -269,9 +259,7 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* ================================================= */}
         {/* LOGOUT */}
-        {/* ================================================= */}
 
         <View className="mt-7">
           <TouchableOpacity

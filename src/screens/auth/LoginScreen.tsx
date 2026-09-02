@@ -95,7 +95,6 @@ export default function LoginScreen() {
         </View>
       </View>
 
-      {/* Tombol Login */}
       <TouchableOpacity 
         onPress={handleLogin} 
         disabled={loading}
@@ -108,7 +107,6 @@ export default function LoginScreen() {
         )}
       </TouchableOpacity>
 
-      {/* Link ke Register */}
       <View className="flex-row justify-center mt-8">
         <Text className="text-slate-400">Belum punya akun? </Text>
         <TouchableOpacity onPress={() => navigation.navigate('Register')}>
