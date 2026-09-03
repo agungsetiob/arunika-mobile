@@ -12,7 +12,7 @@ import MapView, { Marker } from "react-native-maps";
 import * as Location from "expo-location";
 import * as ImagePicker from "expo-image-picker";
 import * as ImageManipulator from "expo-image-manipulator";
-import { Plus, Search, Bell, X, Zap, AlertTriangle } from "lucide-react-native";
+import { Plus, Search, Bell, X, Zap, AlertTriangle, MapPin } from "lucide-react-native";
 import { useAuthStore } from "../../store/authStore";
 import apiClient from "../../api/client";
 import CustomAlert, { AlertType } from "../../components/CustomAlert";

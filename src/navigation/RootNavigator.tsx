@@ -13,6 +13,7 @@ import NotificationsScreen from "../screens/shared/NotificationsScreen";
 import LaporDetailScreen from "../screens/warga/LaporDetailScreen";
 import AdminAssignScreen from "../screens/admin/AdminAssignScreen";
 import TugasDetailScreen from "../screens/petugas/TugasDetailScreen";
+import PetaTransparansiScreen from "../screens/warga/PetaTransparansiScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -48,6 +49,7 @@ export default function RootNavigator() {
           <Stack.Screen name="ReportDetail" component={LaporDetailScreen} />
           <Stack.Screen name="AdminAssign" component={AdminAssignScreen} />
           <Stack.Screen name="TugasDetail" component={TugasDetailScreen} />
+          <Stack.Screen name="PetaTransparansi" component={PetaTransparansiScreen} />
           
         </Stack.Navigator>
       )}
