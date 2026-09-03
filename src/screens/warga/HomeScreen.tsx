@@ -5,7 +5,6 @@ import {
   Text,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   TextInput,
   FlatList,
 } from "react-native";
@@ -16,15 +15,14 @@ import * as ImageManipulator from "expo-image-manipulator";
 import { Plus, Search, Bell, X, Zap, AlertTriangle } from "lucide-react-native";
 import { useAuthStore } from "../../store/authStore";
 import apiClient from "../../api/client";
+import CustomAlert, { AlertType } from "../../components/CustomAlert";
 
 export default function HomeScreen() {
   const navigation = useNavigation<any>();
   const user = useAuthStore((state) => state.user);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  const [location, setLocation] = useState<Location.LocationObject | null>(
-    null,
-  );
+  const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [nearbyLamps, setNearbyLamps] = useState<any[]>([]);
 
@@ -32,6 +30,21 @@ export default function HomeScreen() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const mapRef = useRef<MapView>(null);
+
+  // State untuk CustomAlert
+  const [alertConfig, setAlertConfig] = useState({
+    visible: false,
+    title: "",
+    message: "",
+    type: "info" as AlertType,
+    onConfirm: () => closeAlert(),
+  });
+
+  const showAlert = (title: string, message: string, type: AlertType, onConfirm: () => void = closeAlert) => {
+    setAlertConfig({ visible: true, title, message, type, onConfirm });
+  };
+  
+  const closeAlert = () => setAlertConfig(prev => ({ ...prev, visible: false }));
 
   const filteredLamps = nearbyLamps.filter(
     (lamp) =>
@@ -85,15 +98,16 @@ export default function HomeScreen() {
 
   const handleLapor = async (lampId?: number) => {
     if (!location) {
-      Alert.alert("Tunggu", "Sedang melacak lokasi Anda. Pastikan GPS aktif.");
+      showAlert("Tunggu Sebentar", "Sedang melacak lokasi Anda. Pastikan GPS perangkat aktif.", "info");
       return;
     }
 
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== "granted") {
-      Alert.alert(
+      showAlert(
         "Izin Ditolak",
-        "Dibutuhkan akses kamera untuk mengambil foto kerusakan.",
+        "Dibutuhkan akses kamera untuk mengambil foto kerusakan fasilitas.",
+        "error"
       );
       return;
     }
@@ -123,14 +137,14 @@ export default function HomeScreen() {
     <View className="flex-1 bg-slate-50">
 
       <View
-        className="bg-orange-600 pt-14 pb-5 px-6 rounded-b-3xl shadow-md"
+        className="bg-orange-600 pt-14 pb-6 px-6 rounded-b-3xl shadow-lg"
         style={{
           zIndex: 50,
           elevation: 50,
         }}
       >
         {/* Header top */}
-        <View className="flex-row justify-between items-center mb-4">
+        <View className="flex-row justify-between items-center mb-5">
           <View>
             <Text className="text-orange-200 text-sm font-medium">
               Selamat datang,
@@ -161,7 +175,7 @@ export default function HomeScreen() {
           }}
         >
           {/* Search input */}
-          <View className="bg-white flex-row items-center px-3 mb-1 rounded-3xl shadow-sm h-12">
+          <View className="bg-white flex-row items-center px-4 mb-1 rounded-3xl shadow-sm h-12">
             <Search size={20} color="#94a3b8" />
 
             <TextInput
@@ -182,6 +196,7 @@ export default function HomeScreen() {
             )}
           </View>
 
+          {/* Dropdown Pencarian */}
           {searchQuery.length > 0 && (
             <View
               className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden"
@@ -266,15 +281,14 @@ export default function HomeScreen() {
       </View>
 
       {!location ? (
-        <View className="flex-1 items-center justify-center bg-slate-100">
+        <View className="flex-1 items-center justify-center bg-slate-100 -mt-8" style={{ zIndex: 1 }}>
           <ActivityIndicator size="large" color="#ea580c" />
-
           <Text className="text-slate-500 mt-4 font-medium">
             {errorMsg || "Mendapatkan titik koordinat..."}
           </Text>
         </View>
       ) : (
-        <View className="flex-1 relative">
+        <View className="flex-1 relative -mt-8" style={{ zIndex: 1 }}>
           <MapView
             ref={mapRef}
             className="flex-1"
@@ -404,6 +418,14 @@ export default function HomeScreen() {
           )}
         </View>
       )}
+
+      <CustomAlert 
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        type={alertConfig.type}
+        onConfirm={alertConfig.onConfirm}
+      />
     </View>
   );
 }

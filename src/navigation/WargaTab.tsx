@@ -24,7 +24,7 @@ export default function WargaTab() {
         options={{ tabBarIcon: ({ color }) => <Home color={color} size={24} /> }} 
       />
       <Tab.Screen 
-        name="Laporanku" 
+        name="Laporan" 
         component={LaporankuStack} 
         options={{ tabBarIcon: ({ color }) => <FileText color={color} size={24} /> }} 
       />

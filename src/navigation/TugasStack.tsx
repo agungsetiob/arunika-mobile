@@ -10,7 +10,7 @@ export default function TugasStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="TugasList" component={TugasListScreen} />
-      <Stack.Screen name="TugasDetail" component={TugasDetailScreen} />
+      {/* <Stack.Screen name="TugasDetail" component={TugasDetailScreen} /> */}
       <Stack.Screen name="Notifications" component={NotificationsScreen} />
     </Stack.Navigator>
   );

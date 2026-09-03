@@ -6,21 +6,38 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
-  Alert,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { ChevronLeft, User, Phone, Lock, Save } from "lucide-react-native";
+import { ChevronLeft, User, Phone, Lock, Save, Mail, CreditCard } from "lucide-react-native";
 import { useAuthStore } from "../../store/authStore";
 import apiClient from "../../api/client";
+import CustomAlert, { AlertType } from "../../components/CustomAlert";
 
 export default function EditProfileScreen() {
   const navigation = useNavigation<any>();
-  const { user, role, checkAuth, setUser } = useAuthStore();
+  const { user, role, setUser } = useAuthStore();
 
   const [name, setName] = useState(user?.name || "");
   const [phone, setPhone] = useState(user?.phone || "");
+  const [email, setEmail] = useState(user?.email || "");
+  const [nik, setNik] = useState(user?.nik || "");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // State untuk CustomAlert
+  const [alertConfig, setAlertConfig] = useState({
+    visible: false,
+    title: "",
+    message: "",
+    type: "info" as AlertType,
+    onConfirm: () => closeAlert(),
+  });
+
+  const showAlert = (title: string, message: string, type: AlertType, onConfirm: () => void = closeAlert) => {
+    setAlertConfig({ visible: true, title, message, type, onConfirm });
+  };
+  
+  const closeAlert = () => setAlertConfig(prev => ({ ...prev, visible: false }));
 
   const themeColor =
     role === "admin" ? "#7c3aed" : role === "petugas" ? "#0284c7" : "#ea580c";
@@ -38,14 +55,14 @@ export default function EditProfileScreen() {
         : "shadow-orange-500/30";
 
   const handleSave = async () => {
-    if (!name.trim() || !phone.trim()) {
-      Alert.alert("Error", "Nama dan Nomor HP tidak boleh kosong.");
+    if (!name.trim() || !phone.trim() || !email.trim() || !nik.trim()) {
+      showAlert("Peringatan", "Semua kolom (kecuali kata sandi) wajib diisi.", "warning");
       return;
     }
 
     setLoading(true);
     try {
-      const payload: any = { name, phone };
+      const payload: any = { name, phone, email, nik };
       if (password.trim()) {
         payload.password = password;
       }
@@ -54,15 +71,13 @@ export default function EditProfileScreen() {
 
       setUser(response.data.data);
 
-      Alert.alert("Berhasil", "Profil Anda berhasil diperbarui.", [
-        { text: "OK", onPress: () => navigation.goBack() },
-      ]);
+      showAlert("Berhasil", "Profil Anda berhasil diperbarui.", "success", () => {
+        closeAlert();
+        navigation.goBack();
+      });
     } catch (error: any) {
-      Alert.alert(
-        "Gagal",
-        error.response?.data?.message ||
-          "Terjadi kesalahan saat menyimpan profil.",
-      );
+      const errorMsg = error.response?.data?.message || "Terjadi kesalahan saat menyimpan profil.";
+      showAlert("Gagal", errorMsg, "error");
     } finally {
       setLoading(false);
     }
@@ -83,18 +98,55 @@ export default function EditProfileScreen() {
         <Text className="text-lg font-bold text-white ml-2">Edit Profil</Text>
       </View>
 
-      <ScrollView contentContainerStyle={{ padding: 24 }}>
+      <ScrollView 
+        contentContainerStyle={{ padding: 24, paddingBottom: 40 }}
+        keyboardShouldPersistTaps="handled"
+      >
         <View className="mb-5">
           <Text className="text-slate-600 font-bold mb-2 ml-1">
             Nama Lengkap
           </Text>
-          <View className="flex-row items-center bg-white border border-slate-200 rounded-2xl px-4 py-1 h-14 shadow-sm">
+          <View className="flex-row items-center bg-white border border-slate-200 rounded-2xl px-4 py-1 h-14 shadow-sm focus:border-orange-500">
             <User size={20} color={themeColor} />
             <TextInput
               className="flex-1 ml-3 text-slate-800 font-medium"
               value={name}
               onChangeText={setName}
               placeholder="Masukkan nama lengkap"
+            />
+          </View>
+        </View>
+
+        <View className="mb-5">
+          <Text className="text-slate-600 font-bold mb-2 ml-1">
+            Email
+          </Text>
+          <View className="flex-row items-center bg-white border border-slate-200 rounded-2xl px-4 py-1 h-14 shadow-sm">
+            <Mail size={20} color={themeColor} />
+            <TextInput
+              className="flex-1 ml-3 text-slate-800 font-medium"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              placeholder="email@contoh.com"
+            />
+          </View>
+        </View>
+
+        <View className="mb-5">
+          <Text className="text-slate-600 font-bold mb-2 ml-1">
+            NIK (16 Digit)
+          </Text>
+          <View className="flex-row items-center bg-white border border-slate-200 rounded-2xl px-4 py-1 h-14 shadow-sm">
+            <CreditCard size={20} color={themeColor} />
+            <TextInput
+              className="flex-1 ml-3 text-slate-800 font-medium"
+              value={nik}
+              onChangeText={setNik}
+              keyboardType="numeric"
+              maxLength={16}
+              placeholder="Masukkan NIK KTP Anda"
             />
           </View>
         </View>
@@ -151,6 +203,14 @@ export default function EditProfileScreen() {
           )}
         </TouchableOpacity>
       </ScrollView>
+
+      <CustomAlert 
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        type={alertConfig.type}
+        onConfirm={alertConfig.onConfirm}
+      />
     </View>
   );
 }

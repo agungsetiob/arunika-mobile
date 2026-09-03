@@ -3,14 +3,22 @@ import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, TextInput 
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { ChevronLeft, MapPin, UserCheck, CheckCircle2, XCircle, FileWarning, AlertTriangle, Search, X } from 'lucide-react-native';
 import apiClient from '../../api/client';
-import CustomAlert, { AlertType } from '../../components/CustomAlert'; // Sesuaikan path
+import CustomAlert, { AlertType } from '../../components/CustomAlert';
 
 export default function AdminAssignScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
-  const { report } = route.params;
+  
+  // 1. TANGKAP PARAMETER
+  const params = route.params || {};
+  const passedReport = params.report;
+  const reportId = params.id || passedReport?.id;
 
-  const [currentStatus, setCurrentStatus] = useState(report.status);
+  // 2. STATE UNTUK DATA LAPORAN
+  const [report, setReport] = useState<any>(passedReport?.damage_category ? passedReport : null);
+  const [isLoadingData, setIsLoadingData] = useState<boolean>(!report);
+
+  const [currentStatus, setCurrentStatus] = useState(report?.status || '');
   
   // State Petugas & Pencarian
   const [petugasList, setPetugasList] = useState<any[]>([]);
@@ -38,12 +46,36 @@ export default function AdminAssignScreen() {
   };
   const closeAlert = () => setAlertConfig(prev => ({ ...prev, visible: false }));
 
-  // Pencarian dengan Debounce
+  useEffect(() => {
+    if (!report && reportId) {
+      fetchReportDetail();
+    }
+  }, []);
+
+  // Fungsi Fetch Detail Laporan
+  const fetchReportDetail = async () => {
+    try {
+      const response = await apiClient.get(`/admin/reports/${reportId}`);
+      const fetchedReport = response.data.data;
+      
+      setReport(fetchedReport);
+      setCurrentStatus(fetchedReport.status);
+    } catch (error) {
+      showAlert('Error', 'Data laporan tidak ditemukan atau telah dihapus.', 'error', () => {
+        closeAlert();
+        navigation.goBack();
+      });
+    } finally {
+      setIsLoadingData(false);
+    }
+  };
+
+  // 4. Pencarian dengan Debounce (Hanya jalan jika status verified)
   useEffect(() => {
     if (currentStatus === 'verified') {
       const delayDebounceFn = setTimeout(() => {
         fetchPetugas(searchQuery);
-      }, 500); // Tunggu 500ms setelah user berhenti ngetik
+      }, 500);
 
       return () => clearTimeout(delayDebounceFn);
     }
@@ -52,7 +84,6 @@ export default function AdminAssignScreen() {
   const fetchPetugas = async (query = '') => {
     setLoading(true);
     try {
-      // Mengirim query search ke API
       const response = await apiClient.get('/admin/petugas', { params: { search: query } });
       setPetugasList(response.data.data);
     } catch (error) {
@@ -122,6 +153,33 @@ export default function AdminAssignScreen() {
     { id: 'emergency', label: 'Darurat!', color: 'bg-red-50', activeColor: 'bg-red-600', textColor: 'text-red-600', activeTextColor: 'text-white' },
   ];
 
+  // LOADING STATE JIKA FETCH DARI NOTIFIKASI
+  if (isLoadingData) {
+    return (
+      <View className="flex-1 bg-slate-50">
+        <View className="bg-violet-600 pt-12 pb-4 px-4 flex-row items-center shadow-md z-10">
+          <TouchableOpacity onPress={() => navigation.goBack()} className="p-2 -ml-2">
+            <ChevronLeft size={28} color="white" />
+          </TouchableOpacity>
+          <Text className="text-lg font-bold text-white ml-2">Tindak Lanjut Laporan</Text>
+        </View>
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#7c3aed" />
+          <Text className="text-slate-500 mt-3 font-medium">Memuat data laporan...</Text>
+        </View>
+
+        <CustomAlert 
+          visible={alertConfig.visible}
+          title={alertConfig.title}
+          message={alertConfig.message}
+          type={alertConfig.type}
+          onConfirm={alertConfig.onConfirm}
+        />
+      </View>
+    );
+  }
+
+  // RENDER UTAMA
   return (
     <View className="flex-1 bg-slate-50">
       <View className="bg-violet-600 pt-12 pb-4 px-4 flex-row items-center shadow-md z-10">
@@ -142,15 +200,15 @@ export default function AdminAssignScreen() {
             </View>
           </View>
           <Text className="text-lg font-extrabold text-slate-800 mb-2">
-            {report.damage_category.replace(/_/g, ' ').toUpperCase()}
+            {report?.damage_category?.replace(/_/g, ' ').toUpperCase()}
           </Text>
           <View className="flex-row items-start bg-slate-50 p-3 rounded-xl border border-slate-100 mb-3">
             <MapPin size={20} color="#7c3aed" className="mt-0.5" />
             <Text className="ml-3 text-slate-600 text-sm flex-1 leading-relaxed">
-              {report.alamat_lengkap || 'Lokasi tidak diketahui'}
+              {report?.alamat_lengkap || 'Lokasi tidak diketahui'}
             </Text>
           </View>
-          {report.description && (
+          {report?.description && (
             <Text className="text-slate-600 text-sm"><Text className="font-bold">Deskripsi:</Text> {report.description}</Text>
           )}
         </View>
@@ -234,7 +292,6 @@ export default function AdminAssignScreen() {
                 </View>
               </View>
 
-              {/* Input Pencarian Petugas */}
               <View className="flex-row items-center bg-white border border-slate-200 rounded-xl px-3 h-12 mb-4">
                 <Search size={20} color="#94a3b8" />
                 <TextInput 
@@ -303,7 +360,6 @@ export default function AdminAssignScreen() {
         </View>
       )}
 
-      {/* Render Custom Alert di bagian paling bawah */}
       <CustomAlert 
         visible={alertConfig.visible}
         title={alertConfig.title}

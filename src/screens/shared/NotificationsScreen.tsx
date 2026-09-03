@@ -6,19 +6,25 @@ import apiClient from '../../api/client';
 import { useAuthStore } from '../../store/authStore';
 
 export default function NotificationsScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  
   const role = useAuthStore((state) => state.role);
+  
   const bgTheme = role === 'admin' ? 'bg-violet-600' : role === 'petugas' ? 'bg-sky-600' : 'bg-orange-600';
   const iconTheme = role === 'admin' ? '#7c3aed' : role === 'petugas' ? '#0284c7' : '#ea580c';
+  
+  const unreadBg = role === 'admin' ? 'bg-violet-50/50 border-violet-200' 
+                 : role === 'petugas' ? 'bg-sky-50/50 border-sky-200' 
+                 : 'bg-orange-50/50 border-orange-200';
 
-  // Ambil data dari API Laravel
+  const unreadDot = role === 'admin' ? 'bg-violet-500' : role === 'petugas' ? 'bg-sky-500' : 'bg-orange-500';
+
   const fetchNotifications = async () => {
     try {
       const response = await apiClient.get('/notifications');
-      // response.data.data.data karena Laravel menggunakan Pagination
       setNotifications(response.data.data.data);
     } catch (error) {
       console.log('Gagal memuat notifikasi', error);
@@ -37,16 +43,39 @@ export default function NotificationsScreen() {
     fetchNotifications();
   };
 
-  // Fungsi tandai satu pesan sudah dibaca
+  // Fungsi tandai dibaca (tanpa navigasi, untuk dipakai internal)
   const markAsRead = async (id: string, readAt: string | null) => {
     if (readAt !== null) return;
     
     setNotifications(notifications.map(n => n.id === id ? { ...n, read_at: new Date().toISOString() } : n));
-    
     try {
       await apiClient.post(`/notifications/${id}/read`);
     } catch (error) {
       console.log('Gagal update status read', error);
+    }
+  };
+
+  const handleNotificationPress = async (item: any) => {
+    await markAsRead(item.id, item.read_at);
+
+    const notifData = item.data;
+    const reportId = notifData.report_id;
+    const assignmentId = notifData.assignment_id;
+
+    if (!reportId && !assignmentId) {
+        console.warn('Backend belum mengirimkan ID (report_id / assignment_id) di dalam data notifikasi');
+        return;
+    }
+
+    if (role === 'petugas') {
+        const assignId = item.data.assignment_id || reportId; 
+        navigation.navigate('TugasDetail', { id: assignId });
+    } 
+    else if (role === 'warga') {
+        navigation.navigate('ReportDetail', { id: reportId });
+    } 
+    else if (role === 'admin') {
+        navigation.navigate('AdminAssign', { id: reportId });
     }
   };
 
@@ -98,7 +127,7 @@ export default function NotificationsScreen() {
       <View className={`${bgTheme} pt-14 pb-4 px-4 flex-row items-center justify-between shadow-sm`}>
         <View className="flex-row items-center">
             <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
-            <ArrowLeft color="white" size={24} />
+              <ArrowLeft color="white" size={24} />
             </TouchableOpacity>
             <Text className="text-white text-lg font-bold ml-2">Notifikasi</Text>
         </View>
@@ -128,14 +157,14 @@ export default function NotificationsScreen() {
           </View>
         }
         renderItem={({ item }) => {
-          const isUnread = item.read_at === null; // Null berarti belum dibaca
+          const isUnread = item.read_at === null; 
           const notifData = item.data;
 
           return (
             <TouchableOpacity 
-              onPress={() => markAsRead(item.id, item.read_at)}
+              onPress={() => handleNotificationPress(item)}
               activeOpacity={0.7}
-              className={`flex-row p-4 mb-3 rounded-2xl border ${!isUnread ? 'bg-white border-slate-100 shadow-sm' : 'bg-orange-50/50 border-orange-200 shadow-sm'}`}
+              className={`flex-row p-4 mb-3 rounded-2xl border ${!isUnread ? 'bg-white border-slate-100 shadow-sm' : `${unreadBg} shadow-sm`}`}
             >
               {/* Ikon Tipe Notif */}
               <View className={`w-12 h-12 rounded-full items-center justify-center mr-4 ${getIconBg(notifData.type)}`}>
@@ -145,11 +174,11 @@ export default function NotificationsScreen() {
               {/* Konten */}
               <View className="flex-1">
                 <View className="flex-row justify-between items-start mb-1">
-                  <Text className={`flex-1 font-bold ${!isUnread ? 'text-slate-800' : 'text-orange-900'}`}>
+                  <Text className={`flex-1 font-bold ${!isUnread ? 'text-slate-800' : 'text-slate-900'}`}>
                     {notifData.title}
                   </Text>
                   {isUnread && (
-                    <View className="w-2.5 h-2.5 bg-orange-500 rounded-full ml-2 mt-1" />
+                    <View className={`w-2.5 h-2.5 rounded-full ml-2 mt-1 ${unreadDot}`} />
                   )}
                 </View>
                 

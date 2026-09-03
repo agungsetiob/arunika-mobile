@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
-import { Lightbulb, Phone, Lock } from 'lucide-react-native';
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Image, Linking } from 'react-native';
+import { Phone, Lock } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import apiClient from '../../api/client';
 import { useAuthStore } from '../../store/authStore';
 import { registerForPushNotificationsAsync } from '../../utils/pushNotification';
+import CustomAlert, { AlertType } from '../../components/CustomAlert';
 
 export default function LoginScreen() {
   const navigation = useNavigation<any>();
@@ -14,9 +15,24 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('password123');
   const [loading, setLoading] = useState(false);
 
+  // State untuk CustomAlert
+  const [alertConfig, setAlertConfig] = useState({
+    visible: false,
+    title: '',
+    message: '',
+    type: 'info' as AlertType,
+    onConfirm: () => closeAlert(),
+  });
+
+  const showAlert = (title: string, message: string, type: AlertType, onConfirm: () => void = closeAlert) => {
+    setAlertConfig({ visible: true, title, message, type, onConfirm });
+  };
+  
+  const closeAlert = () => setAlertConfig(prev => ({ ...prev, visible: false }));
+
   const handleLogin = async () => {
     if (!phone || !password) {
-      Alert.alert('Error', 'Nomor HP dan Password wajib diisi!');
+      showAlert('Peringatan', 'Nomor HP dan Password wajib diisi!', 'warning');
       return;
     }
 
@@ -49,23 +65,47 @@ export default function LoginScreen() {
 
     } catch (error: any) {
       const errorMsg = error.response?.data?.message || 'Gagal terhubung ke server';
-      Alert.alert('Login Gagal', errorMsg);
+      showAlert('Login Gagal', errorMsg, 'error');
     } finally {
       setLoading(false);
     }
   };
 
+  // Mekanisme Forgot Password (Zero-Backend) via WhatsApp
+  const handleForgotPassword = async () => {
+    const adminPhone = "6281234567890"; // Ganti dengan nomor WA Admin (gunakan kode negara 62)
+    const message = "Halo Admin Arunika, saya lupa password akun saya. Mohon bantuannya untuk melakukan reset password. Terima kasih.";
+    
+    const waUrlApp = `whatsapp://send?phone=${adminPhone}&text=${encodeURIComponent(message)}`;
+    const waUrlWeb = `https://wa.me/${adminPhone}?text=${encodeURIComponent(message)}`;
+
+    try {
+        const supported = await Linking.canOpenURL(waUrlApp);
+        if (supported) {
+            await Linking.openURL(waUrlApp);
+        } else {
+            await Linking.openURL(waUrlWeb);
+        }
+    } catch (error) {
+        showAlert('Error', 'Tidak dapat membuka WhatsApp. Pastikan aplikasi WhatsApp terinstal.', 'error');
+    }
+  };
+
   return (
     <View className="flex-1 bg-slate-900 justify-center px-6">
+      {/* Efek Blur Background (Tidak diubah) */}
       <View className="absolute top-0 -left-10 h-64 w-64 rounded-full bg-orange-500/10 blur-3xl" />
       
-      {/* Header/Logo */}
+      {/* Header/Logo (Diganti menggunakan Image) */}
       <View className="items-center mb-10">
         <View className="mb-4 flex h-20 w-20 items-center justify-center">
-          <Lightbulb color="white" size={40} />
+          <Image 
+            source={require('../../../assets/logo-kemenhub.png')} 
+            style={{ width: 80, height: 80 }} 
+            resizeMode="contain" 
+          />
         </View>
-        <Text className="text-3xl font-extrabold text-white">Masuk Arunika</Text>
-        <Text className="text-slate-400 mt-2 text-center">Silakan masuk untuk melaporkan atau menangani kerusakan PJU.</Text>
+        <Text className="text-3xl font-extrabold text-white">ARUNIKA</Text>
       </View>
 
       {/* Form Input */}
@@ -95,6 +135,7 @@ export default function LoginScreen() {
         </View>
       </View>
 
+      {/* Tombol Login */}
       <TouchableOpacity 
         onPress={handleLogin} 
         disabled={loading}
@@ -107,12 +148,36 @@ export default function LoginScreen() {
         )}
       </TouchableOpacity>
 
-      <View className="flex-row justify-center mt-8">
-        <Text className="text-slate-400">Belum punya akun? </Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-          <Text className="text-orange-400 font-bold">Daftar Warga Baru</Text>
-        </TouchableOpacity>
+      {/* Tautan Forgot Password */}
+      <TouchableOpacity onPress={handleForgotPassword} className="mt-5 items-center">
+        <Text className="text-slate-400 text-sm">
+          Lupa password? <Text className="text-orange-400 font-bold">Hubungi Admin</Text>
+        </Text>
+      </TouchableOpacity>
+
+      {/* Divider */}
+      <View className="flex-row items-center my-6">
+        <View className="flex-1 h-[1px] bg-slate-800" />
+        <Text className="mx-4 text-slate-500 text-sm font-medium">ATAU</Text>
+        <View className="flex-1 h-[1px] bg-slate-800" />
       </View>
+
+      {/* Tombol Daftar Baru */}
+      <TouchableOpacity 
+        onPress={() => navigation.navigate('Register')}
+        className="h-14 rounded-xl items-center justify-center border-2 border-slate-700 bg-slate-800/30"
+      >
+        <Text className="text-white font-bold text-lg">Daftar Warga Baru</Text>
+      </TouchableOpacity>
+
+      {/* Custom Alert */}
+      <CustomAlert 
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        type={alertConfig.type}
+        onConfirm={alertConfig.onConfirm}
+      />
     </View>
   );
 }
