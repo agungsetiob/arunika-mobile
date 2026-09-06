@@ -30,7 +30,7 @@ export default function WargaTab() {
         options={{ tabBarIcon: ({ color }) => <FileText color={color} size={24} /> }} 
       />
       <Tab.Screen 
-        name="Peta" 
+        name="Map" 
         component={PetaTransparansiScreen} 
         options={{ tabBarIcon: ({ color }) => <Map color={color} size={24} /> }} 
       />
