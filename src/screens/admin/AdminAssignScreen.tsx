@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, TextInput } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, TextInput, Image, Linking, Platform } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { ChevronLeft, MapPin, UserCheck, CheckCircle2, XCircle, FileWarning, AlertTriangle, Search, X } from 'lucide-react-native';
+import { ChevronLeft, MapPin, UserCheck, CheckCircle2, XCircle, FileWarning, AlertTriangle, Search, X, Navigation } from 'lucide-react-native';
 import apiClient from '../../api/client';
 import CustomAlert, { AlertType } from '../../components/CustomAlert';
 
@@ -70,7 +70,7 @@ export default function AdminAssignScreen() {
     }
   };
 
-  // 4. Pencarian dengan Debounce (Hanya jalan jika status verified)
+  // 4. Pencarian dengan Debounce
   useEffect(() => {
     if (currentStatus === 'verified') {
       const delayDebounceFn = setTimeout(() => {
@@ -146,12 +146,55 @@ export default function AdminAssignScreen() {
     }
   };
 
+  // --- FUNGSI BUKA GOOGLE MAPS ---
+  const openGoogleMaps = () => {
+    if (!report?.lat || !report?.lng) {
+      showAlert('Peringatan', 'Koordinat lokasi tidak tersedia.', 'warning');
+      return;
+    }
+
+    const lat = report.lat;
+    const lng = report.lng;
+    const label = "Lokasi Kerusakan";
+    
+    // Skema URL menyesuaikan platform (iOS/Android)
+    const url = Platform.select({
+      ios: `maps:0,0?q=${label}@${lat},${lng}`,
+      android: `geo:0,0?q=${lat},${lng}(${label})`
+    });
+
+    if (url) {
+      Linking.canOpenURL(url).then(supported => {
+        if (supported) {
+          Linking.openURL(url);
+        } else {
+          Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`);
+        }
+      });
+    }
+  };
+
   const priorities = [
     { id: 'low', label: 'Rendah', color: 'bg-slate-100', activeColor: 'bg-slate-600', textColor: 'text-slate-600', activeTextColor: 'text-white' },
     { id: 'medium', label: 'Sedang', color: 'bg-blue-50', activeColor: 'bg-blue-600', textColor: 'text-blue-600', activeTextColor: 'text-white' },
     { id: 'high', label: 'Tinggi', color: 'bg-orange-50', activeColor: 'bg-orange-600', textColor: 'text-orange-600', activeTextColor: 'text-white' },
     { id: 'emergency', label: 'Darurat!', color: 'bg-red-50', activeColor: 'bg-red-600', textColor: 'text-red-600', activeTextColor: 'text-white' },
   ];
+  
+  const getImageUrl = (path?: string) => {
+    if (!path) return null;
+    if (path.startsWith('http')) return path;
+    
+    // Jika path relatif, gabungkan dengan URL API
+    const baseUrl = process.env.EXPO_PUBLIC_API_URL?.replace('/api/v1', '');
+    return `${baseUrl}/storage/${path}`;
+  };
+
+  useEffect(() => {
+    if (!report && reportId) {
+      fetchReportDetail();
+    }
+  }, []);
 
   // LOADING STATE JIKA FETCH DARI NOTIFIKASI
   if (isLoadingData) {
@@ -167,14 +210,6 @@ export default function AdminAssignScreen() {
           <ActivityIndicator size="large" color="#7c3aed" />
           <Text className="text-slate-500 mt-3 font-medium">Memuat data laporan...</Text>
         </View>
-
-        <CustomAlert 
-          visible={alertConfig.visible}
-          title={alertConfig.title}
-          message={alertConfig.message}
-          type={alertConfig.type}
-          onConfirm={alertConfig.onConfirm}
-        />
       </View>
     );
   }
@@ -199,17 +234,51 @@ export default function AdminAssignScreen() {
               </Text>
             </View>
           </View>
-          <Text className="text-lg font-extrabold text-slate-800 mb-2">
+          <Text className="text-lg font-extrabold text-slate-800 mb-4">
             {report?.damage_category?.replace(/_/g, ' ').toUpperCase()}
           </Text>
-          <View className="flex-row items-start bg-slate-50 p-3 rounded-xl border border-slate-100 mb-3">
-            <MapPin size={20} color="#7c3aed" className="mt-0.5" />
-            <Text className="ml-3 text-slate-600 text-sm flex-1 leading-relaxed">
-              {report?.alamat_lengkap || 'Lokasi tidak diketahui'}
-            </Text>
+          
+          {/* FOTO LAPORAN (Horizontal Scroll) */}
+          {report?.media && report.media.length > 0 && (
+            <View className="mb-4">
+              <Text className="text-sm font-bold text-slate-800 mb-2">Foto Kondisi:</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row">
+                {report.media.map((item: any, index: number) => {
+                  const validImageUrl = getImageUrl(item.file_path);
+                  if (!validImageUrl) return null;
+                  return (
+                    <Image 
+                      key={item.id || index}
+                      source={{ uri: validImageUrl }} 
+                      className="w-32 h-32 rounded-xl bg-slate-100 mr-3 border border-slate-200"
+                      resizeMode="cover"
+                    />
+                  );
+                })}
+              </ScrollView>
+            </View>
+          )}
+
+          {/* LOKASI DAN TOMBOL MAPS */}
+          <View className="bg-slate-50 p-4 rounded-xl border border-slate-100 mb-3">
+            <View className="flex-row items-start mb-3">
+              <MapPin size={20} color="#7c3aed" className="mt-0.5" />
+              <Text className="ml-3 text-slate-600 text-sm flex-1 leading-relaxed">
+                {report?.alamat_lengkap || 'Lokasi tidak diketahui'}
+              </Text>
+            </View>
+            
+            <TouchableOpacity 
+              onPress={openGoogleMaps}
+              className="bg-violet-100 py-2.5 rounded-lg flex-row items-center justify-center border border-violet-200"
+            >
+              <Navigation size={16} color="#7c3aed" />
+              <Text className="text-violet-700 font-bold ml-2 text-sm">Buka Maps</Text>
+            </TouchableOpacity>
           </View>
+
           {report?.description && (
-            <Text className="text-slate-600 text-sm"><Text className="font-bold">Deskripsi:</Text> {report.description}</Text>
+            <Text className="text-slate-600 text-sm mt-2"><Text className="font-bold text-slate-800">Deskripsi:</Text> {report.description}</Text>
           )}
         </View>
 
@@ -261,7 +330,7 @@ export default function AdminAssignScreen() {
         )}
 
         {currentStatus === 'verified' && (
-          <View className="px-4 space-y-6">
+          <View className="px-4 space-y-6 mt-2">
             <View>
               <View className="flex-row items-center mb-3">
                 <AlertTriangle size={18} color="#475569" />

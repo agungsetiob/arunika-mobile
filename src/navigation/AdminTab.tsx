@@ -1,9 +1,11 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Inbox, User } from 'lucide-react-native';
+import { Inbox, User, Map, Medal } from 'lucide-react-native';
 
 import AdminStack from './AdminStack';
 import ProfileStack from './ProfileStack';
+import PetaTransparansiScreen from '../screens/shared/PetaTransparansiScreen';
+import LeaderboardScreen from '../screens/shared/LeaderboardScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -21,6 +23,16 @@ export default function AdminTab() {
         name="Laporan" 
         component={AdminStack} 
         options={{ tabBarIcon: ({ color }) => <Inbox color={color} size={24} /> }} 
+      />
+      <Tab.Screen 
+        name="Map" 
+        component={PetaTransparansiScreen}
+        options={{ tabBarIcon: ({ color }) => <Map color={color} size={24} /> }} 
+      />
+      <Tab.Screen 
+        name="Leaderboard" 
+        component={LeaderboardScreen}
+        options={{ tabBarIcon: ({ color }) => <Medal color={color} size={24} /> }} 
       />
       <Tab.Screen 
         name="Profile" 

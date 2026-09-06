@@ -47,10 +47,10 @@ export default function ProfileScreen() {
 
   const themeBg =
     role === 'admin'
-      ? 'bg-violet-100'
+      ? 'bg-violet-600'
       : role === 'petugas'
-        ? 'bg-sky-100'
-        : 'bg-orange-100';
+        ? 'bg-sky-600'
+        : 'bg-orange-600';
 
   const themeSoft =
     role === 'admin'
@@ -96,7 +96,7 @@ export default function ProfileScreen() {
 
       {/* FIXED PROFILE HEADER */}
       <View
-        className="bg-slate-900 rounded-b-[36px] px-6 pt-16 pb-8 items-center"
+        className={`${themeBg} rounded-b-[36px] px-6 pt-16 pb-8 items-center`}
         style={{
           zIndex: 10,
           elevation: 10,
@@ -235,7 +235,7 @@ export default function ProfileScreen() {
               className="flex-row items-center px-5 py-4"
             >
               <View
-                className={`h-11 w-11 rounded-2xl ${themeBg} items-center justify-center`}
+                className={`h-11 w-11 rounded-2xl ${themeSoft} items-center justify-center`}
               >
                 <Info size={20} color={themeColor} />
               </View>

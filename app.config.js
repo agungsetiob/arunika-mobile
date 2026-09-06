@@ -1,4 +1,4 @@
-import 'dotenv/config';
+//import 'dotenv/config';
 
 export default {
   expo: {
@@ -57,6 +57,7 @@ export default {
     plugins: [
       "expo-font",
       "expo-secure-store",
+      "expo-status-bar",
       [
         "expo-notifications",
         {

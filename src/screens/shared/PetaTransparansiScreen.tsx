@@ -1,12 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import MapView, { Marker, Callout, PROVIDER_GOOGLE } from 'react-native-maps';
-import { ChevronLeft, Zap, Wrench, CheckCircle2 } from 'lucide-react-native';
+import { ChevronLeft, Zap } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import apiClient from '../../api/client';
+import { useAuthStore } from '../../store/authStore';
+// TODO: Jika kamu punya AuthContext, import di sini untuk mengambil data 'role'
+// import { useAuth } from '../../context/AuthContext'; 
 
 export default function PetaTransparansiScreen() {
   const navigation = useNavigation<any>();
+  const { role } = useAuthStore();
+
   const [reports, setReports] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -22,6 +27,21 @@ export default function PetaTransparansiScreen() {
       console.log('Gagal memuat data peta', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCalloutPress = (report: any) => {
+    const reportId = report.id;
+
+    if (role === 'petugas') {
+      const assignId = report.assignment_id || reportId; 
+      navigation.navigate('TugasDetail', { id: assignId });
+    } 
+    else if (role === 'admin') {
+      navigation.navigate('AdminAssign', { id: reportId });
+    } 
+    else {
+      navigation.navigate('ReportDetail', { id: reportId });
     }
   };
 
@@ -83,7 +103,7 @@ export default function PetaTransparansiScreen() {
 
       {/* Komponen Peta */}
       <MapView 
-        style={StyleSheet.absoluteFillObject}
+        style={StyleSheet.absoluteFill}
         provider={PROVIDER_GOOGLE}
         initialRegion={initialRegion}
         showsUserLocation={true}
@@ -98,7 +118,7 @@ export default function PetaTransparansiScreen() {
             pinColor={getMarkerColor(report.status)}
           >
             {/* Pop-up Info (Callout) saat Pin ditekan */}
-            <Callout tooltip onPress={() => navigation.navigate('ReportDetail', { id: report.id })}>
+            <Callout tooltip onPress={() => handleCalloutPress(report)}>
               <View className="bg-white rounded-2xl p-4 shadow-xl border border-slate-100 w-[250px]">
                 <View className="flex-row items-center mb-2">
                   <Zap size={16} color={report.type === 'pju' ? '#f59e0b' : '#ef4444'} />

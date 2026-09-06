@@ -1,26 +1,36 @@
 import * as Device from 'expo-device';
-import * as Notifications from 'expo-notifications';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { Platform } from 'react-native';
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
-
 export async function registerForPushNotificationsAsync() {
-  let token;
+  if (Constants.executionEnvironment === ExecutionEnvironment.StoreClient) {
+    console.log('Mode Expo Go terdeteksi: Fitur push notification dinonaktifkan sementara.');
+    return null;
+  }
 
-  // Notifikasi push hanya bekerja di perangkat asli (fisik), bukan emulator biasa
-  if (Device.isDevice) {
+  if (!Device.isDevice) {
+    console.log('Anda harus menggunakan Perangkat Fisik (HP) untuk Push Notifications');
+    return null;
+  }
+
+  let token = null;
+
+  try {
+    const Notifications = require('expo-notifications');
+
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+        shouldShowBanner: true,
+        shouldShowList: true,
+      }),
+    });
+
     const { status: existingStatus } = await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;
     
-    // Jika belum ada izin, munculkan pop-up minta izin
     if (existingStatus !== 'granted') {
       const { status } = await Notifications.requestPermissionsAsync();
       finalStatus = status;
@@ -31,26 +41,21 @@ export async function registerForPushNotificationsAsync() {
       return null;
     }
     
-    // AMBIL TOKEN FCM ASLI (Bukan token Expo)
-    try {
-        const tokenData = await Notifications.getDevicePushTokenAsync();
-        token = tokenData.data;
-        console.log('FCM Token Android:', token);
-    } catch (error) {
-        console.log('Gagal mengambil Device Token', error);
-    }
-  } else {
-    console.log('Anda harus menggunakan Perangkat Fisik (HP) untuk Push Notifications');
-  }
+    const tokenData = await Notifications.getDevicePushTokenAsync();
+    token = tokenData.data;
+    console.log(`Device Push Token (${Platform.OS.toUpperCase()}):`, token);
 
-  // Pengaturan tambahan khusus Android
-  if (Platform.OS === 'android') {
-    Notifications.setNotificationChannelAsync('default', {
-      name: 'default',
-      importance: Notifications.AndroidImportance.MAX,
-      vibrationPattern: [0, 250, 250, 250],
-      lightColor: '#ea580c',
-    });
+    if (Platform.OS === 'android') {
+      await Notifications.setNotificationChannelAsync('default', {
+        name: 'default',
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: '#ea580c',
+      });
+    }
+
+  } catch (error) {
+    console.log('Gagal memproses Push Notification:', error);
   }
 
   return token;

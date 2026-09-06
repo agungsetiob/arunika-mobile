@@ -71,23 +71,32 @@ export default function LoginScreen() {
     }
   };
 
-  // Mekanisme Forgot Password (Zero-Backend) via WhatsApp
   const handleForgotPassword = async () => {
-    const adminPhone = "6281234567890"; // Ganti dengan nomor WA Admin (gunakan kode negara 62)
-    const message = "Halo Admin Arunika, saya lupa password akun saya. Mohon bantuannya untuk melakukan reset password. Terima kasih.";
-    
-    const waUrlApp = `whatsapp://send?phone=${adminPhone}&text=${encodeURIComponent(message)}`;
-    const waUrlWeb = `https://wa.me/${adminPhone}?text=${encodeURIComponent(message)}`;
-
     try {
-        const supported = await Linking.canOpenURL(waUrlApp);
-        if (supported) {
-            await Linking.openURL(waUrlApp);
-        } else {
-            await Linking.openURL(waUrlWeb);
-        }
+      const response = await apiClient.get('/auth/admin-phone');
+      const adminPhone = response.data?.data;
+      if (!adminPhone) {
+        showAlert('Error', 'Nomor admin tidak ditemukan.', 'error');
+        return;
+      }
+
+      const formattedPhone = adminPhone.startsWith('62')
+        ? adminPhone
+        : `62${adminPhone.replace(/^0+/, '')}`;
+
+      const message = "Halo Admin Arunika, saya lupa password akun saya. Mohon bantuannya untuk melakukan reset password. Terima kasih.";
+      const waUrlApp = `whatsapp://send?phone=${formattedPhone}&text=${encodeURIComponent(message)}`;
+      const waUrlWeb = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`;
+
+      const supported = await Linking.canOpenURL(waUrlApp);
+      if (supported) {
+        await Linking.openURL(waUrlApp);
+      } else {
+        await Linking.openURL(waUrlWeb);
+      }
     } catch (error) {
-        showAlert('Error', 'Tidak dapat membuka WhatsApp. Pastikan aplikasi WhatsApp terinstal.', 'error');
+      console.error(error);
+      showAlert('Error', 'Tidak dapat membuka WhatsApp. Pastikan aplikasi WhatsApp terinstal.', 'error');
     }
   };
 
