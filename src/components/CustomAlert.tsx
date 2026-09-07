@@ -56,9 +56,7 @@ export default function CustomAlert({
   return (
     <Modal transparent animationType="fade" visible={visible}>
       <View className="flex-1 justify-center items-center bg-black/50 px-5">
-        {/* Card alert – style iOS */}
         <View className="bg-white w-full max-w-sm rounded-3xl overflow-hidden shadow-xl">
-          {/* Konten atas (icon, judul, pesan) */}
           <View className="p-6 items-center">
             <View className="mb-4">{getIcon()}</View>
             <Text className="text-lg font-semibold text-slate-800 mb-2 text-center">
@@ -69,7 +67,6 @@ export default function CustomAlert({
             </Text>
           </View>
 
-          {/* Area tombol – gaya iOS (garis pemisah, teks saja) */}
           <View className="border-t border-slate-200 flex-row">
             {showCancel && (
               <TouchableOpacity
