@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import {
   View,
   Text,
@@ -48,8 +49,17 @@ export default function LaporDetailScreen() {
     try {
       const response = await apiClient.get(`/reports/${id}`);
       setReport(response.data.data);
-    } catch (error) {
-      showAlert("Error", "Gagal memuat detail laporan.", "error", () => {
+    } catch (error: unknown) {
+      let message = "Gagal memuat detail laporan.";
+
+      if (axios.isAxiosError(error)) {
+        message =
+          error.response?.data?.message ||
+          error.message ||
+          message;
+      }
+
+      showAlert("Error", message, "error", () => {
         closeAlert();
         navigation.goBack();
       });

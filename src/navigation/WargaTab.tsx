@@ -1,11 +1,12 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Home, FileText, User, Map } from 'lucide-react-native';
+import { Home, FileText, User, Map, Medal } from 'lucide-react-native';
 
 import HomeStack from './HomeStack';
 import LaporankuStack from './LaporankuStack';
 import ProfileStack from './ProfileStack';
-import PetaTransparansiScreen from '../screens/warga/PetaTransparansiScreen';
+import PetaTransparansiScreen from '../screens/shared/PetaTransparansiScreen';
+import LeaderboardScreen from '../screens/shared/LeaderboardScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -30,9 +31,14 @@ export default function WargaTab() {
         options={{ tabBarIcon: ({ color }) => <FileText color={color} size={24} /> }} 
       />
       <Tab.Screen 
-        name="Peta" 
+        name="Map" 
         component={PetaTransparansiScreen} 
         options={{ tabBarIcon: ({ color }) => <Map color={color} size={24} /> }} 
+      />
+      <Tab.Screen 
+        name="Leaderboard" 
+        component={LeaderboardScreen}
+        options={{ tabBarIcon: ({ color }) => <Medal color={color} size={24} /> }} 
       />
       <Tab.Screen 
         name="Profile" 
